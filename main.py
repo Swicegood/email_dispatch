@@ -4,6 +4,8 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 import os
+import subprocess
+
 
 # If modifying these SCOPES, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
@@ -53,6 +55,29 @@ def grab_emails(search_str):
 
     return emailmatches
 
+def get_email_body(email):
+    return email['snippet']
+
+def get_email_subject(email):
+    for header in email['payload']['headers']:
+        if header['name'] == 'Subject':
+            return header['value']
+    return "No Subject"
+
+import json
+
+def create_email(email):
+    subject = get_email_subject(email)
+    body = get_email_body(email)
+    confidence = email['confidence']
+    return f"Subject: {subject}\n\nBody: {body}\n\nConfidence: {confidence}"
+
 
 if __name__ == "__main__":
-    grab_emails("Thought")
+    email_matches = grab_emails("ThoughtOfTheDay")
+    for email in email_matches:
+        print(create_email(email))
+        email_str = create_email(email)
+        cmd = f'echo "{email_str}" | docker run --rm -i thought_of_the_day'
+
+        subprocess.run(cmd, shell=True)
