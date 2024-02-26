@@ -39,7 +39,7 @@ def grab_emails(search_str):
             creds = flow.run_console()
 
         # Save the credentials for the next run
-        with open('token.json', 'w') as token:
+        with open('./token/token.json', 'w') as token:
             token.write(creds.to_json())
 
     service = build('gmail', 'v1', credentials=creds)
