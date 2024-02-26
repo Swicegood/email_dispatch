@@ -51,7 +51,6 @@ def grab_emails(search_str):
     if not messages:
         print('No messages found.')
     else:
-        print('Messages:')
         for message in messages:
             emailmatches.append(service.users().messages().get(userId='me', id=message['id']).execute())
             emailmatches[-1]['confidence'] = 7
@@ -73,7 +72,7 @@ def mark_as_read(email):
 def archive_email(email):
     service = get_gmail_service()
     service.users().messages().modify(userId='me', id=email['id'], body={'removeLabelIds': ['INBOX']}).execute()
-    
+
 def create_email(email):
 # Create a MIMEMultipart message
     msg = MIMEMultipart('alternative')
