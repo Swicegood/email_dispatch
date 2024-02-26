@@ -60,6 +60,12 @@ def grab_emails(search_str):
 
     return emailmatches
 
+def unread_emails(emails):
+    unread = []
+    for email in emails:
+        if 'UNREAD' in email['labelIds']:
+            unread.append(email)
+    return unread
 
 def create_email(email):
 # Create a MIMEMultipart message
