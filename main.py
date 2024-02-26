@@ -9,20 +9,12 @@ import base64
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import tempfile
+import os
 
+SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
 
-
-# If modifying these SCOPES, delete the file token.json.
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-
-def grab_emails(search_str):
-    """Shows basic usage of the Gmail API.
-    Lists the user's Gmail labels.
-    """
+def get_gmail_service():
     creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
     if os.path.exists('./token/token.json'):
         creds = Credentials.from_authorized_user_file('./token/token.json', SCOPES)
 
@@ -43,6 +35,13 @@ def grab_emails(search_str):
             token.write(creds.to_json())
 
     service = build('gmail', 'v1', credentials=creds)
+    return service
+
+def grab_emails(search_str):
+    """Shows basic usage of the Gmail API.
+    Lists the user's Gmail labels.
+    """
+    service = get_gmail_service()
 
     # Call the Gmail API
     results = service.users().messages().list(userId='me', q=search_str, maxResults=10).execute()
@@ -67,6 +66,14 @@ def unread_emails(emails):
             unread.append(email)
     return unread
 
+def mark_as_read(email):
+    service = get_gmail_service()
+    service.users().messages().modify(userId='me', id=email['id'], body={'removeLabelIds': ['UNREAD']}).execute()
+
+def archive_email(email):
+    service = get_gmail_service()
+    service.users().messages().modify(userId='me', id=email['id'], body={'removeLabelIds': ['INBOX']}).execute()
+    
 def create_email(email):
 # Create a MIMEMultipart message
     msg = MIMEMultipart('alternative')
@@ -102,3 +109,14 @@ if __name__ == "__main__":
         print(cmd)
         # Run the command
         subprocess.run(cmd, shell=True)
+        mark_as_read(email)
+        archive_email(email)
+
+    print("Done")
+
+
+
+
+
+
+
