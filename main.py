@@ -54,7 +54,6 @@ def grab_emails(search_str):
         for message in messages:
             emailmatches.append(service.users().messages().get(userId='me', id=message['id']).execute())
             emailmatches[-1]['confidence'] = 7
-            print(emailmatches[-1]['snippet'])
 
     return emailmatches
 
