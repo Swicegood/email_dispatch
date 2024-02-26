@@ -21,8 +21,11 @@ RUN add-apt-repository \
 # Install Docker
 RUN apt-get update && apt-get install -y docker-ce
 
-# Install Python and pip
-RUN apt-get install -y python3.8 python3-pip
+# Add the deadsnakes PPA
+RUN add-apt-repository ppa:deadsnakes/ppa
+
+# Install Python 3.8 and pip
+RUN apt-get update && apt-get install -y python3.8 python3-pip
 
 # Set the working directory
 WORKDIR /app
