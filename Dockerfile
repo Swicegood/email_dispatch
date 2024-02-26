@@ -1,6 +1,9 @@
 # Start from a base Ubuntu image
 FROM ubuntu:latest
 
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+
 # Install dependencies for adding Docker's repository
 RUN apt-get update \
     && apt-get install -y \
