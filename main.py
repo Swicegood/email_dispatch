@@ -5,6 +5,10 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 import os
 import subprocess
+import base64
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 
 
 # If modifying these SCOPES, delete the file token.json.
@@ -55,22 +59,24 @@ def grab_emails(search_str):
 
     return emailmatches
 
-def get_email_body(email):
-    return email['snippet']
-
-def get_email_subject(email):
-    for header in email['payload']['headers']:
-        if header['name'] == 'Subject':
-            return header['value']
-    return "No Subject"
-
-import json
 
 def create_email(email):
-    subject = get_email_subject(email)
-    body = get_email_body(email)
-    confidence = email['confidence']
-    return f"Subject: {subject}\n\nBody: {body}\n\nConfidence: {confidence}"
+# Create a MIMEMultipart message
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = next(header['value'] for header in email['payload']['headers'] if header['name'] == 'Subject')
+    msg['From'] = next(header['value'] for header in email['payload']['headers'] if header['name'] == 'From')
+    msg['To'] = next(header['value'] for header in email['payload']['headers'] if header['name'] == 'To')
+
+    # Add the plain and HTML parts
+    for part in email['payload']['parts']:
+        part_data = base64.urlsafe_b64decode(part['body']['data'].encode('ASCII')).decode('utf-8')
+        if part['mimeType'] == 'text/plain':
+            msg.attach(MIMEText(part_data, 'plain'))
+        elif part['mimeType'] == 'text/html':
+            msg.attach(MIMEText(part_data, 'html'))
+
+    # Convert the multipart message to a string
+    return  msg.as_string()
 
 
 if __name__ == "__main__":
@@ -78,6 +84,6 @@ if __name__ == "__main__":
     for email in email_matches:
         print(create_email(email))
         email_str = create_email(email)
-        cmd = f'echo "{email_str}" | docker run --rm -i thought_of_the_day'
+        cmd = f"echo '{email_str}' | docker run --rm -i thought_of_the_day"
 
         subprocess.run(cmd, shell=True)
