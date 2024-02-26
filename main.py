@@ -94,6 +94,9 @@ def create_email(email):
 if __name__ == "__main__":
     email_matches = grab_emails("ThoughtOfTheDay")
     unread = unread_emails(email_matches)
+    if not unread:
+        print("No unread Thought Of The Day emails")
+        exit(0)
     for email in unread:
         print(create_email(email))
         email_str = create_email(email)
