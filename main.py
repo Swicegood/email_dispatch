@@ -88,7 +88,8 @@ def create_email(email):
 
 if __name__ == "__main__":
     email_matches = grab_emails("ThoughtOfTheDay")
-    for email in email_matches:
+    unread = unread_emails(email_matches)
+    for email in unread:
         print(create_email(email))
         email_str = create_email(email)
         # Create a temporary file
