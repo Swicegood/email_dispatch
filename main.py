@@ -8,6 +8,7 @@ import subprocess
 import base64
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import tempfile
 
 
 
@@ -84,6 +85,13 @@ if __name__ == "__main__":
     for email in email_matches:
         print(create_email(email))
         email_str = create_email(email)
-        cmd = f"echo '{email_str}' | docker run --rm -i thought_of_the_day"
+        # Create a temporary file
+        with tempfile.NamedTemporaryFile('w', delete=False) as temp:
+            temp.write(email_str)
+            temp.close()
 
+        # Create the Docker command
+        cmd = f'cat {temp.name} | docker run --rm -i thought_of_the_day'
+        print(cmd)
+        # Run the command
         subprocess.run(cmd, shell=True)
