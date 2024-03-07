@@ -23,7 +23,7 @@ def get_gmail_service():
             try:
                 creds.refresh(Request())
             except RefreshError:
-                os.remove('token.json')  # Remove the invalid token
+                os.remove('./token/token.json')  # Remove the invalid token
                 flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
                 creds = flow.run_console()
         else:
