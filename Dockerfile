@@ -37,10 +37,10 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN python3.8 -m pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the code into the container
 COPY . .
 
 # Set the command to run when the container starts
-CMD ["python3", "main.py"]
+CMD ["python3.8", "main.py"]
