@@ -60,7 +60,7 @@ def grab_emails(search_str):
 def unread_emails(emails):
     unread = []
     for email in emails:
-        if 'UNREAD' in email['labelIds']:
+        if 'UNREAD' in email.get('labelIds', []):
             unread.append(email)
     return unread
 
