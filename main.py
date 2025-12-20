@@ -3,13 +3,14 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from google.auth.exceptions import GoogleAuthError
 import os
 import subprocess
 import base64
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import tempfile
-import os
+import json
 
 SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
 
@@ -22,15 +23,43 @@ def get_gmail_service():
         if creds and creds.expired and creds.refresh_token:
             try:
                 creds.refresh(Request())
-            except RefreshError:
+            except RefreshError as e:
+                print(f"Token refresh failed: {e}")
+                print("Removing invalid token and re-authenticating...")
                 os.remove('./token/token.json')  # Remove the invalid token
+                creds = None
+        
+        if not creds or not creds.valid:
+            if not os.path.exists('credentials.json'):
+                raise FileNotFoundError(
+                    "credentials.json not found. Please download it from Google Cloud Console:\n"
+                    "1. Go to https://console.cloud.google.com/\n"
+                    "2. Select your project (or create a new one)\n"
+                    "3. Enable Gmail API\n"
+                    "4. Go to 'Credentials' > 'Create Credentials' > 'OAuth client ID'\n"
+                    "5. Choose 'Desktop app' and download the JSON file\n"
+                    "6. Save it as 'credentials.json' in this directory"
+                )
+            
+            try:
                 flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
                 creds = flow.run_console()
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
-            creds = flow.run_console()
+            except Exception as e:
+                error_msg = str(e)
+                if 'deleted_client' in error_msg or '401' in error_msg:
+                    raise ValueError(
+                        "OAuth client has been deleted. Please create a new OAuth client:\n"
+                        "1. Go to https://console.cloud.google.com/\n"
+                        "2. Navigate to 'APIs & Services' > 'Credentials'\n"
+                        "3. Create a new OAuth 2.0 Client ID (Desktop app)\n"
+                        "4. Download the credentials and save as 'credentials.json'\n"
+                        "5. Delete the old token.json file if it exists"
+                    )
+                else:
+                    raise
 
         # Save the credentials for the next run
+        os.makedirs('./token', exist_ok=True)
         with open('./token/token.json', 'w') as token:
             token.write(creds.to_json())
 
